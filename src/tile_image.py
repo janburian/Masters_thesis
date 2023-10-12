@@ -52,10 +52,10 @@ class ImageTile(object):
         for i in range(num_rows):
             for j in range(num_cols):
                 new_row_start = i * (self.tilesize_px - self.overlap_px)
-                new_row_end = (i + 1) * (self.tilesize_px - self.overlap_px)
+                new_row_end = (i + 1) * (self.tilesize_px)
 
                 new_col_start = j * (self.tilesize_px - self.overlap_px)
-                new_col_end = (j + 1) * (self.tilesize_px - self.overlap_px)
+                new_col_end = (j + 1) * (self.tilesize_px)
 
                 tile_image = img[new_row_start:new_row_end, new_col_start:new_col_end]
 
@@ -75,10 +75,10 @@ class ImageTile(object):
             for j in range(num_cols):
                 idx = i * num_cols + j
 
-                row_start = i * tilesize_px
+                row_start = i * (tilesize_px - overlap_px)
                 row_end = (i + 1) * tilesize_px
 
-                col_start = j * tilesize_px
+                col_start = j * (tilesize_px - overlap_px)
                 col_end = (j + 1) * tilesize_px
 
                 merged_image[row_start:row_end, col_start:col_end] = tiles[idx]
@@ -97,6 +97,8 @@ class ImageTile(object):
         for tile in it.split_iterator():
             # processed_tile = self.process_tile(tile) # TODO
             processed_tile = tile
+            plt.imshow(processed_tile)
+            plt.show()
             processed_tiles.append(processed_tile)
 
         merged_img = it.merge(processed_tiles)
@@ -117,7 +119,7 @@ image = Image(path_to_img, img_array)
 
 image_tile = ImageTile(image, 50, 0)
 tilesize_px = 50
-overlap_px = 0
+overlap_px = 20
 merged_image = image_tile.split_and_merge_image(tilesize_px, overlap_px)
 imgplot = plt.imshow(merged_image[:,:,::-1])
 plt.show()
