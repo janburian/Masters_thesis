@@ -34,20 +34,19 @@ class ImageTile(object):
     def get_num_cols_rows(self):
         img = self.image.img_array
         tilesize_px = self.tilesize_px
+        overlap_px = self.overlap_px
 
-        rows = (img.shape[0] // tilesize_px) + 1
-        cols = (img.shape[1] // tilesize_px) + 1
+        # num_rows = (img.shape[0] // tilesize_px) + 1
+        # num_cols = (img.shape[1] // tilesize_px) + 1
 
-        return (rows, cols)
+        num_rows = int(np.ceil(img.shape[0] / (tilesize_px - overlap_px)))
+        num_cols = int(np.ceil(img.shape[1] / (tilesize_px - overlap_px)))
+
+        return (num_rows, num_cols)
 
     def split_iterator(self):
         """Split image into tiles."""
         img = self.image.img_array
-        divided_images = []
-
-        # num_rows = int(np.ceil(img.shape[0] / (self.tilesize_px - self.overlap_px)))
-        # num_cols = int(np.ceil(img.shape[1] / (self.tilesize_px - self.overlap_px)))
-
         (num_rows, num_cols) = self.get_num_cols_rows()
 
         for i in range(num_rows):
