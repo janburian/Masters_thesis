@@ -26,18 +26,18 @@ class Image(object):
 class ImageTile(object):
     """Split image into tiles and after the processing each tile merge them again."""
 
-    def __init__(self, image: np.array, tilesize_px: int, overlay_px: int):
+    def __init__(self, image: np.array, tilesize_px: int, overlap_px: int):
         self.image = image
         self.tilesize_px = tilesize_px
-        self.overlay_px = overlay_px
+        self.overlap_px = overlap_px
 
     def get_num_cols_rows(self):
         img = self.image.img_array
         tilesize_px = self.tilesize_px
-        overlay_px = self.overlay_px
+        overlap_px = self.overlap_px
 
-        num_rows = int(np.ceil(img.shape[0] / (tilesize_px - overlay_px)))
-        num_cols = int(np.ceil(img.shape[1] / (tilesize_px - overlay_px)))
+        num_rows = int(np.ceil(img.shape[0] / (tilesize_px - overlap_px)))
+        num_cols = int(np.ceil(img.shape[1] / (tilesize_px - overlap_px)))
 
         return (num_rows, num_cols)
 
@@ -48,14 +48,16 @@ class ImageTile(object):
 
         for i in range(num_rows):
             for j in range(num_cols):
-                new_row_start = i * (self.tilesize_px - self.overlay_px)
-                new_row_end = (i + 1) * (self.tilesize_px)
+                new_row_start = i * (self.tilesize_px - self.overlap_px)
+                new_row_end = (i + 1) * (self.tilesize_px - self.overlap_px)
 
-                new_col_start = j * (self.tilesize_px - self.overlay_px)
-                new_col_end = (j + 1) * (self.tilesize_px)
+                new_col_start = j * (self.tilesize_px - self.overlap_px)
+                new_col_end = (j + 1) * (self.tilesize_px - self.overlap_px)
 
                 tile_image = img[new_row_start:new_row_end, new_col_start:new_col_end]
 
+                plt.imshow(tile_image)
+                plt.show()
                 yield tile_image
 
 
@@ -72,10 +74,10 @@ class ImageTile(object):
             for j in range(num_cols):
                 idx = i * num_cols + j
 
-                row_start = i * (tilesize_px - self.overlay_px)
+                row_start = i * (tilesize_px - self.overlap_px)
                 row_end = (i + 1) * tilesize_px
 
-                col_start = j * (tilesize_px - self.overlay_px)
+                col_start = j * (tilesize_px - self.overlap_px)
                 col_end = (j + 1) * tilesize_px
 
                 merged_image[row_start:row_end, col_start:col_end] = tiles[idx]
@@ -116,8 +118,8 @@ image = Image(path_to_img, img_array)
 
 image_tile = ImageTile(image, 50, 0)
 tilesize_px = 100
-overlay_px = 0
-merged_image = image_tile.split_and_merge_image(tilesize_px, overlay_px)
+overlap_px = 0
+merged_image = image_tile.split_and_merge_image(tilesize_px, overlap_px)
 imgplot = plt.imshow(merged_image[:,:,::-1])
 plt.imsave("output.png", merged_image)
 plt.show()
