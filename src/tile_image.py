@@ -34,10 +34,10 @@ class ImageTile(object):
     def get_num_cols_rows(self):
         img = self.image.img_array
         tilesize_px = self.tilesize_px
-        overlap_px = self.overlay_px
+        overlay_px = self.overlay_px
 
-        num_rows = int(np.ceil(img.shape[0] / (tilesize_px - overlap_px)))
-        num_cols = int(np.ceil(img.shape[1] / (tilesize_px - overlap_px)))
+        num_rows = int(np.ceil(img.shape[0] / (tilesize_px - overlay_px)))
+        num_cols = int(np.ceil(img.shape[1] / (tilesize_px - overlay_px)))
 
         return (num_rows, num_cols)
 
