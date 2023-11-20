@@ -37,46 +37,79 @@ class ImageSplitterMerger(object):
     def split_iterator(self):
         """Split image into tiles."""
         img = self.img_array
+        tilesize_px = self.tilesize_px
+        overlap_px = self.overlap_px
+
         (num_rows, num_cols) = self.get_num_cols_rows()
 
         for i in range(num_rows):
             for j in range(num_cols):
-                new_row_start = i * (self.tilesize_px - self.overlap_px)
-                new_row_end = (i + 1) * (self.tilesize_px - self.overlap_px) + self.overlap_px
+                row_start = i * (tilesize_px - overlap_px)
+                row_end = row_start + tilesize_px
 
-                new_col_start = j * (self.tilesize_px - self.overlap_px)
-                new_col_end = (j + 1) * (self.tilesize_px - self.overlap_px) + self.overlap_px
+                col_start = j * (tilesize_px - overlap_px)
+                col_end = col_start + tilesize_px
 
-                tile_image = img[new_row_start:new_row_end, new_col_start:new_col_end]
-                tile_image_object = ImageTile(tile_image)
+                # Create a new padded tile for each iteration
+                padded_tile = np.zeros((tilesize_px + 2 * overlap_px, tilesize_px + 2 * overlap_px), dtype=img.dtype)
 
-                # plt.imshow(tile_image)
+                # Calculate the valid region to copy from the original image
+                img_row_start = max(0, row_start - overlap_px)
+                img_row_end = min(img.shape[0], row_end + overlap_px)
+                img_col_start = max(0, col_start - overlap_px)
+                img_col_end = min(img.shape[1], col_end + overlap_px)
+
+                # Calculate the corresponding region in the padded tile
+                pad_row_start = max(0, overlap_px - (row_start - img_row_start))
+                pad_row_end = pad_row_start + img_row_end - img_row_start
+                pad_col_start = max(0, overlap_px - (col_start - img_col_start))
+                pad_col_end = pad_col_start + img_col_end - img_col_start
+
+                # Copy the valid region from the original image to the padded tile
+                padded_tile[pad_row_start:pad_row_end, pad_col_start:pad_col_end] = img[img_row_start:img_row_end,
+                                                                                    img_col_start:img_col_end]
+
+                tile_image_object = ImageTile(padded_tile)
+
+                # plt.imshow(padded_tile)
                 # plt.show()
                 yield tile_image_object
 
     def merge_tiles_to_image(self, tiles: list):
-        """Merge tiles into image."""
+        """Merge tiles into image and remove padding."""
         orig_image = self.img_array
         tilesize_px = self.tilesize_px
-
-        orig_image_shape = orig_image.shape
-        # merged_image = np.zeros(orig_image_shape, dtype="uint8") # TODO: change to this
-        merged_image = np.zeros(orig_image_shape)
+        overlap_px = self.overlap_px
         (num_rows, num_cols) = self.get_num_cols_rows()
+
+        # Initialize the merged image
+        merged_image = np.zeros(orig_image.shape, dtype=orig_image.dtype)
 
         for i in range(num_rows):
             for j in range(num_cols):
                 idx = i * num_cols + j
 
-                row_start = i * (tilesize_px - self.overlap_px)
-                row_end = (i + 1) * tilesize_px - (i * self.overlap_px)
+                row_start = i * (tilesize_px - overlap_px)
+                row_end = min(row_start + tilesize_px, merged_image.shape[0])  # Adjust for edge tiles
 
-                col_start = j * (tilesize_px - self.overlap_px)
-                col_end = (j + 1) * tilesize_px - (j * self.overlap_px)
+                col_start = j * (tilesize_px - overlap_px)
+                col_end = min(col_start + tilesize_px, merged_image.shape[1])  # Adjust for edge tiles
 
-                merged_image[row_start:row_end, col_start:col_end] = tiles[idx].tile
-                # plt.imshow(merged_image)
-                # plt.show()
+                # Remove padding from all sides of the tile
+                tile_no_padding = tiles[idx].tile[overlap_px:overlap_px + row_end - row_start,
+                                  overlap_px:overlap_px + col_end - col_start]
+
+                plt.imshow(tile_no_padding)
+                plt.show()
+
+                # Calculate the corresponding region in the merged image
+                merged_row_start = i * (tilesize_px - overlap_px)
+                merged_row_end = merged_row_start + row_end - row_start
+                merged_col_start = j * (tilesize_px - overlap_px)
+                merged_col_end = merged_col_start + col_end - col_start
+
+                # Copy the tile without padding to the merged image
+                merged_image[merged_row_start:merged_row_end, merged_col_start:merged_col_end] = tile_no_padding
 
         return merged_image
 
@@ -126,7 +159,7 @@ img_array = load_image(path_to_img)
 test_image_array = create_test_image()
 
 image = ImageSplitterMerger(path_to_img, img_array, tilesize_px=50, overlap_px=0)
-test_image = ImageSplitterMerger("", test_image_array, tilesize_px=50, overlap_px=10)
+test_image = ImageSplitterMerger("", test_image_array, tilesize_px=50, overlap_px=20)
 
 plt.imshow(test_image_array)
 plt.title("Input picture")
