@@ -55,30 +55,35 @@ class ImageSplitterMerger(object):
                 col_start = j * (tilesize_px - padding_px)
                 col_end = col_start + tilesize_px
 
-                # Create a new padded tile for each iteration
+                # New padded tile for each iteration
                 dimension = img.shape[2]
                 padded_tile = np.zeros((tilesize_px + 2 * padding_px, tilesize_px + 2 * padding_px, dimension), dtype="uint8")
 
-                # Calculate the valid region to copy from the original image
-                img_row_start = max(0, row_start - padding_px)
-                img_row_end = min(img.shape[0], row_end + padding_px)
-                img_col_start = max(0, col_start - padding_px)
-                img_col_end = min(img.shape[1], col_end + padding_px)
-
-                # Calculate the corresponding region in the padded tile
-                pad_row_start = max(0, padding_px - (row_start - img_row_start))
-                pad_row_end = pad_row_start + img_row_end - img_row_start
-                pad_col_start = max(0, padding_px - (col_start - img_col_start))
-                pad_col_end = pad_col_start + img_col_end - img_col_start
-
-                # Copy the valid region from the original image to the padded tile
-                padded_tile[pad_row_start:pad_row_end, pad_col_start:pad_col_end] = img[img_row_start:img_row_end,
-                                                                                    img_col_start:img_col_end]
+                padded_tile = self.get_padded_tile(col_end, col_start, img, padded_tile, padding_px, row_end, row_start)
                 tile_image_object = ImageTile(padded_tile)
 
                 # plt.imshow(padded_tile)
                 # plt.show()
                 yield tile_image_object
+
+    def get_padded_tile(self, col_end, col_start, img, padded_tile, padding_px, row_end, row_start):
+        # Calculate the valid region to copy from the original image
+        img_row_start = max(0, row_start - padding_px)
+        img_row_end = min(img.shape[0], row_end + padding_px)
+        img_col_start = max(0, col_start - padding_px)
+        img_col_end = min(img.shape[1], col_end + padding_px)
+
+        # Calculate the corresponding region in the padded tile
+        pad_row_start = max(0, padding_px - (row_start - img_row_start))
+        pad_row_end = pad_row_start + img_row_end - img_row_start
+        pad_col_start = max(0, padding_px - (col_start - img_col_start))
+        pad_col_end = pad_col_start + img_col_end - img_col_start
+
+        # Copy the valid region from the original image to the padded tile
+        padded_tile[pad_row_start:pad_row_end, pad_col_start:pad_col_end] = img[img_row_start:img_row_end,
+                                                                            img_col_start:img_col_end]
+
+        return padded_tile
 
     def merge_tiles_to_image(self, tiles: list):
         """Merge tiles into image and remove padding."""
@@ -126,7 +131,7 @@ class ImageSplitterMerger(object):
 
         for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
             processed_tile = tile.process_tile()
-            processed_tile = tile
+            processed_tile = tile # TODO: uncomment this
             processed_tiles.append(processed_tile)
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
@@ -175,8 +180,8 @@ plt.title("Input picture")
 plt.show()
 
 merged_image = image.split_and_merge_image()
-imgplot = plt.imshow(merged_image[:,:,::-1])
-# plt.imshow(merged_image)
-plt.imsave("output.png", merged_image)
+imgplot = plt.imshow(merged_image[:, :, ::-1])
+plt.imshow(merged_image[:, :, ::-1])
+# plt.imsave("output.png", merged_image)
 plt.title("Merged picture")
 plt.show()
