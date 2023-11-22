@@ -7,23 +7,11 @@ import tqdm
 
 
 class ImageSplitterMerger(object):
-    """Class which represents large image"""
-    def __init__(self, path_to_image: Path, img_array: np.array, tilesize_px: int, padding_px: int):
-        self.path_to_image = path_to_image
+    """Class which represents splitter and merger of the image"""
+    def __init__(self, img_array: np.array, tilesize_px: int, padding_px: int):
         self.img_array = img_array
         self.tilesize_px = tilesize_px
         self.padding_px = padding_px
-
-    # def get_orig_image_size(self, img_array: np.array):
-    #     orig_image_size = (img_array.shape[0], img_array.shape[1])
-    #
-    #     return orig_image_size
-    #
-    # def load_image(self):
-    #     img_path = self.path_to_image
-    #     img_array = cv2.imread(str(img_path))
-    #
-    #     return img_array
 
     def get_num_cols_rows(self):
         img = self.img_array
@@ -57,7 +45,8 @@ class ImageSplitterMerger(object):
 
                 # New padded tile for each iteration
                 dimension = img.shape[2]
-                padded_tile = np.zeros((tilesize_px + 2 * padding_px, tilesize_px + 2 * padding_px, dimension), dtype="uint8")
+                padded_tile = np.zeros((tilesize_px + 2 * padding_px, tilesize_px + 2 * padding_px, dimension),
+                                       dtype="uint8")
 
                 padded_tile = self.get_padded_tile(col_end, col_start, img, padded_tile, padding_px, row_end, row_start)
                 tile_image_object = ImageTile(padded_tile)
@@ -66,7 +55,8 @@ class ImageSplitterMerger(object):
                 # plt.show()
                 yield tile_image_object
 
-    def get_padded_tile(self, col_end, col_start, img, padded_tile, padding_px, row_end, row_start):
+    def get_padded_tile(self, col_end: int, col_start: int, img: np.array, padded_tile: np.array, padding_px: int, row_end: int, row_start: int):
+        """Returns padded tile."""
         # Calculate the valid region to copy from the original image
         img_row_start = max(0, row_start - padding_px)
         img_row_end = min(img.shape[0], row_end + padding_px)
@@ -107,8 +97,8 @@ class ImageSplitterMerger(object):
                     col_end = min(col_start + tilesize_px, merged_image.shape[1])  # Adjust for edge tiles
 
                     # Remove padding from all sides of the tile
-                    tile_no_padding = tiles[idx].tile[padding_px:padding_px + row_end - row_start,
-                                      padding_px:padding_px + col_end - col_start]
+                    tile_no_padding = tiles[idx].tile[padding_px:(padding_px + row_end - row_start),
+                                                      padding_px:(padding_px + col_end - col_start)]
 
                     # plt.imshow(tile_no_padding)
                     # plt.show()
@@ -126,12 +116,13 @@ class ImageSplitterMerger(object):
         return merged_image
 
     def split_and_merge_image(self):
+        """Split and merge image, process tile."""
         processed_tiles = []
         total_tiles = self.get_number_tiles()
 
         for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
             processed_tile = tile.process_tile()
-            processed_tile = tile # TODO: uncomment this
+            processed_tile = tile  # TODO: uncomment this
             processed_tiles.append(processed_tile)
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
@@ -144,7 +135,7 @@ class ImageTile(object):
     def __init__(self, tile: np.array):
         self.tile = tile
 
-    def process_tile(self): # TODO: add methods
+    def process_tile(self):  # TODO: add methods
         # print("Test")
         pass
 
@@ -172,8 +163,8 @@ img_array = load_image(path_to_img)
 
 test_image_array = create_test_image()
 
-image = ImageSplitterMerger(path_to_img, img_array, tilesize_px=100, padding_px=10)
-# test_image = ImageSplitterMerger(Path(""), test_image_array, tilesize_px=50, padding_px=20)
+image = ImageSplitterMerger(img_array, tilesize_px=100, padding_px=10)
+# test_image = ImageSplitterMerger(test_image_array, tilesize_px=50, padding_px=20)
 
 plt.imshow(test_image_array)
 plt.title("Input picture")
