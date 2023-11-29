@@ -5,12 +5,12 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import tqdm
 import sys
-from czi_to_jpg import czi_to_jpg_iterator
 import scaffan
+import scaffan.image
 
 path_to_script = Path("~/GitHub/scaffan/").expanduser()
 sys.path.insert(0, str(path_to_script))
-import scaffan.image
+
 
 class ImageSplitterMerger(object):
     """Class which represents splitter and merger of the image"""
@@ -38,7 +38,8 @@ class ImageSplitterMerger(object):
 
         return num_rows, num_cols
 
-    def load_image(self, img_path: Path):
+    @staticmethod
+    def load_image(img_path: Path):
         img_path_str = str(img_path)
         print(os.path.exists(img_path_str))
         anim = scaffan.image.AnnotatedImage(path=img_path_str)
@@ -104,7 +105,7 @@ class ImageSplitterMerger(object):
             size_on_level=self.tilesize_px
         )
 
-        overlapped_tile = view.get_raster_image() # TODO: problem with this line
+        overlapped_tile = view.get_raster_image()  # TODO: problem with this line
         plt.imshow(overlapped_tile)
         plt.show()
 
@@ -115,10 +116,11 @@ class ImageSplitterMerger(object):
         orig_image = self.img_path
         tilesize_px = self.tilesize_px
         overlap_px = self.overlap_px
-        (num_rows, num_cols) = self.get_num_cols_rows()
+        img_shape = self.img_shape
+        (num_rows, num_cols) = self.get_num_cols_rows(img_shape)
 
         # Initialize the merged image
-        merged_image = np.zeros(orig_image.shape, dtype="uint8")
+        merged_image = np.zeros(img_shape, dtype="uint8")
 
         with tqdm.tqdm(total=num_rows * num_cols, desc="Merging Tiles") as pbar:
             for i in range(num_rows):
@@ -133,7 +135,7 @@ class ImageSplitterMerger(object):
 
                     # Remove padding from all sides of the tile
                     tile_no_padding = tiles[idx].tile[overlap_px:(overlap_px + row_end - row_start),
-                                      overlap_px:(overlap_px + col_end - col_start)]
+                                                      overlap_px:(overlap_px + col_end - col_start)]
 
                     # plt.imshow(tile_no_padding)
                     # plt.show()
@@ -185,7 +187,7 @@ def load_image(img_path):
 def create_test_image():
     x, y = np.indices([300, 500])
     center1 = (256, 256)
-    radius1 = 20
+    # radius1 = 20
     mask = (x - center1[0]) ** 2 + (y - center1[1]) ** 2
 
     # plt.imshow(mask)
