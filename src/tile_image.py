@@ -24,6 +24,7 @@ class ImageSplitterMerger(object):
         # view = anim.get_full_view(level)
         view = anim.get_full_view(pixelsize_mm=pixelsize_mm[0])
         shape = view.get_size_on_pixelsize_mm()  # returns rows and cols
+        shape = np.append(shape, 3)  # Added image channel = 3
 
         setattr(self, "view", view)
         setattr(self, "anim", anim)
@@ -100,14 +101,15 @@ class ImageSplitterMerger(object):
         # overlapped_tile[pad_row_start:pad_row_end, pad_col_start:pad_col_end] = img[img_row_start:img_row_end,
         #                                                                             img_col_start:img_col_end]
         view = self.anim.get_view(
-            location=(img_row_start, img_col_start),
+            location_mm=(img_row_start * pixelsize_mm[0], img_col_start * pixelsize_mm[1]),
             pixelsize_mm=pixelsize_mm,
-            size_on_level=self.tilesize_px
+            size_on_level=(self.tilesize_px, self.tilesize_px)
         )
 
-        overlapped_tile = view.get_raster_image()  # TODO: problem with this line
-        plt.imshow(overlapped_tile)
-        plt.show()
+        # overlapped_tile = view.get_raster_image()  # TODO: problem with this line
+        overlapped_tile = view.get_region_image(as_gray=False)
+        # plt.imshow(overlapped_tile)
+        # plt.show()
 
         return overlapped_tile
 
@@ -157,11 +159,13 @@ class ImageSplitterMerger(object):
         processed_tiles = []
         total_tiles = self.get_number_tiles(self.img_shape)
 
-        # for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
-        for tile in self.split_iterator():
+        for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
             processed_tile = tile.process_tile()
             processed_tile = tile  # TODO: uncomment this
             processed_tiles.append(processed_tile)
+            plt.figure()
+            plt.imshow(tile.tile)
+            plt.show()
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
 
@@ -206,7 +210,7 @@ test_image_array = create_test_image()
 #     plt.imshow(test)
 #     plt.show()
 
-image = ImageSplitterMerger(path_to_czi, tilesize_px=100, overlap_px=0, pixelsize_mm=[0.001, 0.001])
+image = ImageSplitterMerger(path_to_czi, tilesize_px=100, overlap_px=0, pixelsize_mm=[0.01, 0.01])
 # test_image = ImageSplitterMerger(test_image_array, tilesize_px=50, overlap_px=20)
 
 # plt.imshow(img_array[:, :, ::-1])
@@ -214,8 +218,8 @@ image = ImageSplitterMerger(path_to_czi, tilesize_px=100, overlap_px=0, pixelsiz
 # plt.show()
 #
 merged_image = image.split_and_merge_image()
-# imgplot = plt.imshow(merged_image[:, :, ::-1])
-# plt.imshow(merged_image[:, :, ::-1])
-# # plt.imsave("output.png", merged_image)
-# plt.title("Merged picture")
-# plt.show()
+imgplot = plt.imshow(merged_image[:, :, ::-1])
+plt.imshow(merged_image[:, :, ::-1])
+plt.imsave("output.png", merged_image)
+plt.title("Merged picture")
+plt.show()
