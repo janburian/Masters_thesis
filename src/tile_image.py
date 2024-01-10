@@ -14,11 +14,12 @@ sys.path.insert(0, str(path_to_script))
 
 class ImageSplitterMerger(object):
     """Class which represents splitter and merger of the image"""
-    def __init__(self, img_path: Path, tilesize_px: int, overlap_px: int, pixelsize_mm: list):
+    def __init__(self, img_path: Path, tilesize_px: int, overlap_px: int, pixelsize_mm: list, fcn=None):
         self.img_path = img_path
         self.tilesize_px = tilesize_px
         self.overlap_px = overlap_px
         self.pixelsize_mm = pixelsize_mm
+        self.fcn = fcn
 
         anim = self.load_image(img_path)
         # view = anim.get_full_view(level)
@@ -73,7 +74,7 @@ class ImageSplitterMerger(object):
                 overlapped_tile = np.zeros((tilesize_px + 2 * overlap_px, tilesize_px + 2 * overlap_px, dimension),
                                            dtype="uint8")
 
-                overlapped_tile = self.get_tile_overlap(col_end, col_start, img, overlapped_tile, overlap_px, row_end,
+                overlapped_tile = self.get_tile_overlap(col_end, col_start, overlap_px, row_end,
                                                        row_start, img_shape)
                 tile_image_object = ImageTile(overlapped_tile)
 
@@ -81,7 +82,7 @@ class ImageSplitterMerger(object):
                 # plt.show()
                 yield tile_image_object
 
-    def get_tile_overlap(self, col_end: int, col_start: int, img: np.array, overlapped_tile: np.array, overlap_px: int, row_end: int, row_start: int, img_shape):
+    def get_tile_overlap(self, col_end: int, col_start: int, overlap_px: int, row_end: int, row_start: int, img_shape: np.array):
         """Returns tile with the overlap."""
         pixelsize_mm = self.pixelsize_mm
 
@@ -101,7 +102,7 @@ class ImageSplitterMerger(object):
         # overlapped_tile[pad_row_start:pad_row_end, pad_col_start:pad_col_end] = img[img_row_start:img_row_end,
         #                                                                             img_col_start:img_col_end]
         view = self.anim.get_view(
-            location_mm=(img_col_start * pixelsize_mm[0], img_row_start * pixelsize_mm[1]), # Changed this line
+            location_mm=(img_col_start * pixelsize_mm[0], img_row_start * pixelsize_mm[1]),  # Changed this line
             pixelsize_mm=pixelsize_mm,
             size_on_level=(self.tilesize_px, self.tilesize_px)
         )
@@ -160,12 +161,16 @@ class ImageSplitterMerger(object):
         total_tiles = self.get_number_tiles(self.img_shape)
 
         for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
-            processed_tile = tile.process_tile()
-            processed_tile = tile  # TODO: uncomment this
+            # processed_tile = tile.process_tile()
+            processed_tile = np.copy(tile)
+            if self.fcn is not None:
+                processed_tile = self.fcn(tile.tile)
+            # processed_tile = tile  # TODO: uncomment this
             processed_tiles.append(processed_tile)
-            plt.figure()
-            plt.imshow(tile.tile)
-            plt.show()
+            # plt.figure()
+            # plt.imshow(tile.tile)
+            # plt.imshow(processed_tile.tile)
+            # plt.show()
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
 
@@ -176,10 +181,6 @@ class ImageTile(object):
     """Class which represents image tile."""
     def __init__(self, tile: np.array):
         self.tile = tile
-
-    def process_tile(self):  # TODO: add methods
-        # print("Test")
-        pass
 
 
 def load_image(img_path):
@@ -199,6 +200,22 @@ def create_test_image():
 
     return mask
 
+def process_tile_test(tile: np.array):
+    if tile.shape[2] != 3:
+        raise ValueError("Image ndarray must have 3 channels for RGB.")
+
+    # Create a copy of the image to avoid modifying the original array
+    result_tile = np.copy(tile)
+
+    # Set the red color (assuming RGB format)
+    red_color = [255, 0, 0]
+
+    # Draw the red square
+    result_tile[50:50 + 50, 50:50 + 50, :] = red_color
+    tile_object = ImageTile(result_tile)
+
+    return tile_object
+
 
 path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
 # img_array = load_image(path_to_czi)
@@ -210,7 +227,7 @@ test_image_array = create_test_image()
 #     plt.imshow(test)
 #     plt.show()
 
-image = ImageSplitterMerger(path_to_czi, tilesize_px=200, overlap_px=0, pixelsize_mm=[0.01, 0.01])
+image = ImageSplitterMerger(path_to_czi, tilesize_px=200, overlap_px=0, pixelsize_mm=[0.01, 0.01], fcn=process_tile_test)
 # test_image = ImageSplitterMerger(test_image_array, tilesize_px=50, overlap_px=20)
 
 # plt.imshow(img_array[:, :, ::-1])
@@ -218,8 +235,10 @@ image = ImageSplitterMerger(path_to_czi, tilesize_px=200, overlap_px=0, pixelsiz
 # plt.show()
 #
 merged_image = image.split_and_merge_image()
-imgplot = plt.imshow(merged_image[:, :, ::-1])
-plt.imshow(merged_image[:, :, ::-1])
-plt.imsave("output.png", merged_image)
+plt.imshow(merged_image)
 plt.title("Merged picture")
 plt.show()
+
+plt.imsave("output.png", merged_image)
+
+
