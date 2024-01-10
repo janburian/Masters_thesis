@@ -165,12 +165,11 @@ class ImageSplitterMerger(object):
             processed_tile = np.copy(tile)
             if self.fcn is not None:
                 processed_tile = self.fcn(tile.tile)
-            # processed_tile = tile  # TODO: uncomment this
             processed_tiles.append(processed_tile)
             # plt.figure()
             # plt.imshow(tile.tile)
-            # plt.imshow(processed_tile.tile)
-            # plt.show()
+            plt.imshow(processed_tile.tile)
+            plt.show()
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
 
@@ -220,7 +219,7 @@ def process_tile_test(tile: np.array):
 path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
 # img_array = load_image(path_to_czi)
 
-test_image_array = create_test_image()
+# test_image_array = create_test_image()
 
 # for img_jpg in czi_to_jpg_iterator(Path(os.path.join(Path(__file__).parent.parent), 'data_czi'), [0.001, 0.001]):
 #     test = img_jpg
@@ -233,7 +232,7 @@ image = ImageSplitterMerger(path_to_czi, tilesize_px=200, overlap_px=0, pixelsiz
 # plt.imshow(img_array[:, :, ::-1])
 # plt.title("Input picture")
 # plt.show()
-#
+
 merged_image = image.split_and_merge_image()
 plt.imshow(merged_image)
 plt.title("Merged picture")
