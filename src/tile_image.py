@@ -70,17 +70,12 @@ class ImageSplitterMerger(object):
                 col_end = col_start + tilesize_px
 
                 # New tile with overlap for each iteration
-                dimension = 3
-                overlapped_tile = np.zeros((tilesize_px + 2 * overlap_px, tilesize_px + 2 * overlap_px, dimension),
-                                           dtype="uint8")
-
                 overlapped_tile = self.get_tile_overlap(col_end, col_start, overlap_px, row_end,
                                                        row_start, img_shape)
-                tile_image_object = ImageTile(overlapped_tile)
 
                 # plt.imshow(overlapped_tile)
                 # plt.show()
-                yield tile_image_object
+                yield overlapped_tile
 
     def get_tile_overlap(self, col_end: int, col_start: int, overlap_px: int, row_end: int, row_start: int, img_shape: np.array):
         """Returns tile with the overlap."""
@@ -137,7 +132,7 @@ class ImageSplitterMerger(object):
                     col_end = min(col_start + tilesize_px, merged_image.shape[1])  # Adjust for edge tiles
 
                     # Remove overlap from all sides of the tile
-                    tile_no_overlap = tiles[idx].tile[overlap_px:(overlap_px + row_end - row_start),
+                    tile_no_overlap = tiles[idx][overlap_px:(overlap_px + row_end - row_start),
                                                       overlap_px:(overlap_px + col_end - col_start)]
 
                     # plt.imshow(tile_no_overlap)
@@ -161,25 +156,18 @@ class ImageSplitterMerger(object):
         total_tiles = self.get_number_tiles(self.img_shape)
 
         for tile in tqdm.tqdm(self.split_iterator(), total=total_tiles, desc="Splitting and Processing Tiles"):
-            # processed_tile = tile.process_tile()
             processed_tile = np.copy(tile)
             if self.fcn is not None:
-                processed_tile = self.fcn(tile.tile)
+                processed_tile = self.fcn(tile)
             processed_tiles.append(processed_tile)
             # plt.figure()
-            # plt.imshow(tile.tile)
-            plt.imshow(processed_tile.tile)
-            plt.show()
+            # plt.imshow(tile)
+            # plt.imshow(processed_tile)
+            # plt.show()
 
         merged_img = self.merge_tiles_to_image(processed_tiles)
 
         return merged_img
-
-
-class ImageTile(object):
-    """Class which represents image tile."""
-    def __init__(self, tile: np.array):
-        self.tile = tile
 
 
 def load_image(img_path):
@@ -211,9 +199,8 @@ def process_tile_test(tile: np.array):
 
     # Draw the red square
     result_tile[50:50 + 50, 50:50 + 50, :] = red_color
-    tile_object = ImageTile(result_tile)
 
-    return tile_object
+    return result_tile
 
 
 path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
