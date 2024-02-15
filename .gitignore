@@ -1,4 +1,3 @@
 *.iml
-*.czi
 *.png
 src/__pycache__/tile_image.cpython-36.pyc
