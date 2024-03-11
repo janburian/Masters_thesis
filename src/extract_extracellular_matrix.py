@@ -59,8 +59,11 @@ def basic_thresholding(img_array: np.array, threshold_value):
 
 
 def color_thresholding(img_array: np.array):
+    plt.imshow(img_array)
+    plt.show()
+
     # Convert to HSV
-    hsv = cv2.cvtColor(img_array, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(img_array[:, :, ::-1], cv2.COLOR_BGR2HSV)
 
     # Define lower and upper bounds
     lower_bound = np.array([10, 100, 50])  # Adjust these values as needed
@@ -69,10 +72,9 @@ def color_thresholding(img_array: np.array):
     # Create mask
     mask = cv2.inRange(hsv, lower_bound, upper_bound)
     mask_dilated = dilation(mask)
-    mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
+
+    for i in range(2):
+        mask_dilated = dilation(mask_dilated)
 
     mask = mask_dilated ^ mask
     plt.imshow(mask, cmap='gray')
@@ -82,8 +84,10 @@ def color_thresholding(img_array: np.array):
     result = cv2.bitwise_and(img_array, img_array, mask=mask)
 
     # Display result (or save using cv2.imwrite)
-    plt.imshow(result[:,:,::-1])
+    plt.imshow(result)
     plt.show()
+
+    return result
 
 def get_contours(img_grayscale: np.array):
     img_dilated = dilation(img_grayscale)
@@ -103,8 +107,7 @@ def apply_mask_to_orig_image(mask, orig_image):
     plt.show()
 
 if __name__ == '__main__':
-    image_name = 'extracelluar_matrix.png'
-    # image_name = 'orig_image_cell_nuclei.jpg'
+    image_name = 'test_lob.png'
 
     # Define the path to the  image
     path_to_image = Path(os.path.join(Path(__file__).parent.parent), 'data', image_name)
@@ -112,15 +115,7 @@ if __name__ == '__main__':
     # otsu_res = otsu_thresholding(img_array)
     # contours = get_contours(otsu_res)
     # apply_mask_to_orig_image(contours, img_array)
-    # basic_thresholding(img_array, threshold_value=160)
-    color_thresholding(img_array)
+    basic_thresholding(img_array, threshold_value=80)
+    # res = color_thresholding(img_array)
     # plt.imshow(img_array)
     # plt.show()
-
-
-
-
-
-
-
-
