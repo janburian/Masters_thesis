@@ -5,12 +5,16 @@ import os
 import numpy as np
 from skimage.filters import threshold_otsu
 from skimage.morphology import dilation
+from skimage.io import imread
 
 def load_image(img_path: Path) -> np.array:
-    img = cv2.imread(str(img_path))
+    img = imread(str(img_path))
     return img
 
 def otsu_thresholding(img_array: np.array):
+    # Convert image to BGR
+    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
     grayscale_image = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
     # plt.imshow(grayscale_image[:,:,::-1], cmap='gray')
     # plt.show()
@@ -28,6 +32,9 @@ def otsu_thresholding(img_array: np.array):
     return sample_otsu
 
 def basic_thresholding(img_array: np.array, threshold_value):
+    # Convert image to BGR
+    img_array= cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
     # cv2.cvtColor is applied over the
     # image input with applied parameters
     # to convert the image in grayscale
@@ -93,6 +100,9 @@ def remove_orange_brown(image):
 
   contours = dilated_mask ^ mask
 
+  plt.imshow(contours, cmap='gray')
+  plt.show()
+
   # Apply the mask to the original image (preserves non-orange-brown colors)
   result = cv2.bitwise_and(image, image, mask=contours)
 
@@ -102,6 +112,9 @@ def remove_orange_brown(image):
   return result
 
 def color_thresholding(img_array: np.array):
+    # Convert image to BGR
+    image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
     # Convert to HSV
     hsv = cv2.cvtColor(img_array[:, :, ::-1], cv2.COLOR_BGR2HSV)
 
@@ -146,6 +159,7 @@ def apply_mask_to_orig_image(mask, orig_image):
     # plt.imshow(result[:,:,::-1])
     # plt.show()
     return result
+
 
 if __name__ == '__main__':
     image_name = 'extracelluar_matrix_5.png'
