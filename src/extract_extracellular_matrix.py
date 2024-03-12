@@ -57,23 +57,63 @@ def basic_thresholding(img_array: np.array, threshold_value):
     plt.imshow(thresh5, cmap='gray')
     plt.show()
 
+def remove_orange_brown(image):
+  """
+  Removes orange and brown shades from an image using HSV color space.
+
+  Args:
+      image_path (str): Path to the image file.
+
+  Returns:
+      numpy.ndarray: The modified image with reduced orange-brown shades.
+  """
+  # Read the image
+  # image = cv2.imread(str(image_path))
+
+  # Convert image to BGR
+  image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+  # plt.imshow(image[:, :, ::-1])
+  # plt.show()
+
+  # Convert the image to HSV color space
+  hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+  # Define lower and upper bounds for orange-brown in HSV (adjust as needed)
+  # Hue ranges from 0-179, Saturation and Value range from 0-255
+  lower_orange_brown = np.array([10, 50, 40]) # Orig 10, 0, 40
+  upper_orange_brown = np.array([30, 200, 255]) # Orig 50, 255, 255
+
+  # Create a mask to identify orange-brown pixels
+  mask = cv2.inRange(hsv_image, lower_orange_brown, upper_orange_brown)
+
+  # Invert the mask to target non-orange-brown pixels
+  mask = cv2.bitwise_not(mask)
+  dilated_mask = dilation(mask)
+  dilated_mask = dilation(dilated_mask)
+
+  contours = dilated_mask ^ mask
+
+  # Apply the mask to the original image (preserves non-orange-brown colors)
+  result = cv2.bitwise_and(image, image, mask=contours)
+
+  # plt.imshow(result)
+  # plt.show()
+
+  return result
 
 def color_thresholding(img_array: np.array):
-    plt.imshow(img_array)
-    plt.show()
-
     # Convert to HSV
     hsv = cv2.cvtColor(img_array[:, :, ::-1], cv2.COLOR_BGR2HSV)
 
     # Define lower and upper bounds
-    lower_bound = np.array([10, 100, 50])  # Adjust these values as needed
-    upper_bound = np.array([30, 255, 255])
+    lower_bound = np.array([10, 40, 40])  # Adjust these values as needed
+    upper_bound = np.array([20, 255, 255])
 
     # Create mask
     mask = cv2.inRange(hsv, lower_bound, upper_bound)
     mask_dilated = dilation(mask)
 
-    for i in range(2):
+    for i in range(1):
         mask_dilated = dilation(mask_dilated)
 
     mask = mask_dilated ^ mask
@@ -103,19 +143,22 @@ def get_contours(img_grayscale: np.array):
 
 def apply_mask_to_orig_image(mask, orig_image):
     result = cv2.bitwise_and(orig_image, orig_image, mask=mask.astype(np.uint8))
-    plt.imshow(result[:,:,::-1])
-    plt.show()
+    # plt.imshow(result[:,:,::-1])
+    # plt.show()
+    return result
 
 if __name__ == '__main__':
-    image_name = 'test_lob.png'
+    image_name = 'extracelluar_matrix_5.png'
 
     # Define the path to the  image
     path_to_image = Path(os.path.join(Path(__file__).parent.parent), 'data', image_name)
     img_array = load_image(path_to_image)
     # otsu_res = otsu_thresholding(img_array)
     # contours = get_contours(otsu_res)
-    # apply_mask_to_orig_image(contours, img_array)
-    basic_thresholding(img_array, threshold_value=80)
+    # mask_orig_image = apply_mask_to_orig_image(contours, img_array)
+    # basic_thresholding(img_array, threshold_value=80)
     # res = color_thresholding(img_array)
-    # plt.imshow(img_array)
-    # plt.show()
+
+    res = remove_orange_brown(img_array)
+    plt.imshow(res[:,:,::-1])
+    plt.show()
