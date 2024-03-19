@@ -24,8 +24,8 @@ def remove_extracellular_matrix(tile: np.array):
     res = remove_orange_brown(tile)
     res = make_white_background(res)
 
-    pink_color_RGB_structures = (138, 97, 136)
-    grey_color_RGB_inside_lobules = (154, 146, 156)  # RGB
+    pink_color_RGB_structures = (145, 92, 146)
+    grey_color_RGB_inside_lobules = (240, 231, 239)  # RGB
 
     pink_color_BGR = (pink_color_RGB_structures[2], pink_color_RGB_structures[1], pink_color_RGB_structures[0])
     grey_color_BGR = (grey_color_RGB_inside_lobules[2], grey_color_RGB_inside_lobules[1], grey_color_RGB_inside_lobules[0])
