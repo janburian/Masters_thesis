@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 from tile_image import ImageSplitterMerger
 import os
-from extract_extracellular_matrix import color_thresholding, remove_orange_brown
+from extract_extracellular_matrix import color_thresholding, remove_orange_brown, make_white_background, \
+    create_pink_contours, get_lobules
 from pathlib import Path
 import numpy as np
 import torch
@@ -18,7 +19,19 @@ def process_tile(tile: np.array) -> np.array:
 def remove_extracellular_matrix(tile: np.array):
     # plt.imshow(tile)
     # plt.show()
+    lobules = get_lobules(tile, 50)
+
     res = remove_orange_brown(tile)
+    res = make_white_background(res)
+
+    pink_color_RGB_structures = (138, 97, 136)
+    grey_color_RGB_inside_lobules = (154, 146, 156)  # RGB
+
+    pink_color_BGR = (pink_color_RGB_structures[2], pink_color_RGB_structures[1], pink_color_RGB_structures[0])
+    grey_color_BGR = (grey_color_RGB_inside_lobules[2], grey_color_RGB_inside_lobules[1], grey_color_RGB_inside_lobules[0])
+
+    res = create_pink_contours(res, lobules, pink_color_BGR, grey_color_BGR)
+
     # plt.imshow(res)
     # plt.show()
 
@@ -60,8 +73,9 @@ def process_tile_test_2(tile):
 
 if __name__ == '__main__':
     ## Define the path to the CZI file
-    path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J8_8_a.czi')
-    # path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
+    # path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J8_8_a.czi')
+    path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
+    # path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'test2.czi')
 
     # Create an ImageSplitterMerger instance with the specified parameters
     image = ImageSplitterMerger(path_to_czi, tilesize_px=500, overlap_px=0, pixelsize_mm=[0.001, 0.001],
@@ -76,4 +90,4 @@ if __name__ == '__main__':
     plt.show()
 
     # Save the merged image as a PNG file
-    plt.imsave("output.png", merged_image[:,:,::-1])
+    plt.imsave("output_1.png", merged_image[:,:,::-1])

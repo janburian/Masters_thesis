@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import numpy as np
 from skimage.filters import threshold_otsu
-from skimage.morphology import dilation
+from skimage.morphology import dilation, binary_closing, skeletonize
 from skimage.io import imread
 
 def load_image(img_path: Path) -> np.array:
@@ -25,11 +25,26 @@ def otsu_thresholding(img_array: np.array):
     # plt.imshow(np.invert(sample_otsu), cmap='gray')
     # plt.show()
     inverted_otsu_result = (np.invert(sample_otsu)).astype(np.uint8)
-    result = cv2.bitwise_and(img_array, img_array, mask=sample_otsu.astype(np.uint8))
-    plt.imshow(result[:,:,::-1])
+    # result = cv2.bitwise_and(img_array, img_array, mask=sample_otsu.astype(np.uint8))
+    # plt.imshow(np.invert(result[:,:,::-1]))
+    plt.imshow(inverted_otsu_result, cmap="gray")
+    plt.show()
     plt.show()
 
     return sample_otsu
+
+def get_lobules(img_array: np.array, threshold_value):
+    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
+    # cv2.cvtColor is applied over the
+    # image input with applied parameters
+    # to convert the image in grayscale
+    img = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
+    ret, lobules_mask = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY_INV)
+    # plt.imshow(lobules_mask, cmap="gray")
+    # plt.show()
+
+    return lobules_mask
 
 def basic_thresholding(img_array: np.array, threshold_value):
     # Convert image to BGR
@@ -40,10 +55,6 @@ def basic_thresholding(img_array: np.array, threshold_value):
     # to convert the image in grayscale
     img = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
 
-    # applying different thresholding
-    # techniques on the input image
-    # all pixels value above 120 will
-    # be set to 255
     ret, thresh1 = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY)
     ret, thresh2 = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY_INV)
     ret, thresh3 = cv2.threshold(img, threshold_value, 255, cv2.THRESH_TRUNC)
@@ -74,9 +85,6 @@ def remove_orange_brown(image):
   Returns:
       numpy.ndarray: The modified image with reduced orange-brown shades.
   """
-  # Read the image
-  # image = cv2.imread(str(image_path))
-
   # Convert image to BGR
   image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
   # plt.imshow(image[:, :, ::-1])
@@ -87,21 +95,22 @@ def remove_orange_brown(image):
 
   # Define lower and upper bounds for orange-brown in HSV (adjust as needed)
   # Hue ranges from 0-179, Saturation and Value range from 0-255
-  lower_orange_brown = np.array([10, 50, 40]) # Orig 10, 0, 40
-  upper_orange_brown = np.array([30, 200, 255]) # Orig 50, 255, 255
+  lower_orange_brown = np.array([10, 50, 40])  # Orig 10, 0, 40
+  upper_orange_brown = np.array([30, 200, 255])  # Orig 50, 255, 255
 
   # Create a mask to identify orange-brown pixels
   mask = cv2.inRange(hsv_image, lower_orange_brown, upper_orange_brown)
 
   # Invert the mask to target non-orange-brown pixels
-  mask = cv2.bitwise_not(mask)
+  # mask = cv2.bitwise_not(mask)
   dilated_mask = dilation(mask)
   dilated_mask = dilation(dilated_mask)
 
   contours = dilated_mask ^ mask
+  contours = binary_closing(contours).astype("uint8")
 
-  plt.imshow(contours, cmap='gray')
-  plt.show()
+  # plt.imshow(contours, cmap='gray')
+  # plt.show()
 
   # Apply the mask to the original image (preserves non-orange-brown colors)
   result = cv2.bitwise_and(image, image, mask=contours)
@@ -111,16 +120,48 @@ def remove_orange_brown(image):
 
   return result
 
+def make_white_background(image: np.array):
+    # Define black pixel value (replace with your desired black threshold if needed)
+    black_pixel = (0, 0, 0)
+
+    # Replace black pixels with white
+    white_pixel = (255, 255, 255)
+    mask = np.all(image == black_pixel, axis=-1)
+    image[mask] = white_pixel
+
+    return image
+
+def create_pink_contours(image: np.array, lobules_mask: np.array, color_structures: tuple, color_inside_lobules: tuple):
+    # Define white pixel value
+    white_pixel = (255, 255, 255)
+
+    # Get indices of pixels to modify based on the mask
+    indices = np.where(lobules_mask == 255)
+
+    # Change pixel color at the specified indices
+    image[indices[0], indices[1], :] = color_structures
+
+    # plt.imshow(image)
+    # plt.show()
+
+    # Create mask to identify non-white pixels
+    mask = np.any(image != white_pixel, axis=-1) & np.any(image != color_structures, axis=-1)
+
+    # Replace non-white pixels with new color
+    image[mask] = color_inside_lobules
+
+    return image
+
 def color_thresholding(img_array: np.array):
     # Convert image to BGR
     image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
     # Convert to HSV
-    hsv = cv2.cvtColor(img_array[:, :, ::-1], cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Define lower and upper bounds
-    lower_bound = np.array([10, 40, 40])  # Adjust these values as needed
-    upper_bound = np.array([20, 255, 255])
+    lower_bound = np.array([10, 100, 50])  # Adjust these values as needed
+    upper_bound = np.array([30, 255, 255])
 
     # Create mask
     mask = cv2.inRange(hsv, lower_bound, upper_bound)
@@ -160,6 +201,12 @@ def apply_mask_to_orig_image(mask, orig_image):
     # plt.show()
     return result
 
+def get_skeleton(image: np.array):
+    thresholded_image = otsu_thresholding(image)
+    skeleton = skeletonize(thresholded_image)
+    plt.imshow(skeleton, cmap="gray")
+    plt.show()
+
 
 if __name__ == '__main__':
     image_name = 'extracelluar_matrix_5.png'
@@ -173,6 +220,15 @@ if __name__ == '__main__':
     # basic_thresholding(img_array, threshold_value=80)
     # res = color_thresholding(img_array)
 
+    lobules = get_lobules(img_array, 50)
     res = remove_orange_brown(img_array)
+    res = make_white_background(res)
+    pink_color_RGB_structures = (138, 97, 136)
+    grey_color_RGB_inside_lobules = (154, 146, 156)  # RGB
+
+    pink_color_BGR = (pink_color_RGB_structures[2], pink_color_RGB_structures[1], pink_color_RGB_structures[0])
+    grey_color_BGR = (grey_color_RGB_inside_lobules[2], grey_color_RGB_inside_lobules[1], grey_color_RGB_inside_lobules[0])
+
+    res = create_pink_contours(res, lobules, pink_color_BGR, grey_color_BGR)
     plt.imshow(res[:,:,::-1])
     plt.show()

@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
@@ -151,7 +152,10 @@ class ImageSplitterMerger(object):
                 processed_tile = self.fcn(tile)
 
                 # Normalize to 0-255 range
-                processed_tile_normalized = cv2.normalize(processed_tile, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_32F)
+                if np.all(processed_tile == 255):  # Check if all channels are 255 (white)
+                    processed_tile_normalized = processed_tile  # In case of an fully white image
+                else:
+                    processed_tile_normalized = cv2.normalize(processed_tile, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
                 # Convert to uint8 for compatibility (optional)
                 processed_tile_normalized = processed_tile_normalized.astype(np.uint8)
