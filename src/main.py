@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from tile_image import ImageSplitterMerger
 import os
 from extract_extracellular_matrix import color_thresholding, remove_orange_brown, make_white_background, \
-    create_pink_contours, get_lobules
+    create_pink_contours, get_lobules_method_1, get_lobules_method_2
 from pathlib import Path
 import numpy as np
 import torch
@@ -19,7 +19,8 @@ def process_tile(tile: np.array) -> np.array:
 def remove_extracellular_matrix(tile: np.array):
     # plt.imshow(tile)
     # plt.show()
-    lobules = get_lobules(tile, 50)
+    # lobules = get_lobules_method_1(tile, 50)
+    lobules = get_lobules_method_2(tile)
 
     res = remove_orange_brown(tile)
     res = make_white_background(res)

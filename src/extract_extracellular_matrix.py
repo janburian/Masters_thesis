@@ -33,18 +33,45 @@ def otsu_thresholding(img_array: np.array):
 
     return sample_otsu
 
-def get_lobules(img_array: np.array, threshold_value):
+def get_lobules_method_1(img_array: np.array, threshold_value):
     img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
     # cv2.cvtColor is applied over the
     # image input with applied parameters
     # to convert the image in grayscale
     img = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
-    ret, lobules_mask = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY_INV)
+    ret, lobules_structure_mask = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY_INV)
     # plt.imshow(lobules_mask, cmap="gray")
     # plt.show()
 
-    return lobules_mask
+    return lobules_structure_mask
+
+def get_lobules_method_2(img_array: np.array):
+    # Convert image to BGR
+    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
+    # Convert to from BGR to HSV
+    hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
+
+    # Define lower and upper bounds
+    lower_bound = np.array([10, 100, 50])  # Adjust these values as needed
+    upper_bound = np.array([30, 255, 255])
+
+    # Create mask
+    lobules_structure_mask = cv2.inRange(hsv, lower_bound, upper_bound)
+    mask_dilated = dilation(lobules_structure_mask)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+
+    lobules_structure_mask = mask_dilated ^ lobules_structure_mask
+    # plt.imshow(lobules_structure_mask, cmap='gray')
+    # plt.show()
+
+    return lobules_structure_mask
+
+
 
 def basic_thresholding(img_array: np.array, threshold_value):
     # Convert image to BGR
@@ -220,7 +247,7 @@ if __name__ == '__main__':
     # basic_thresholding(img_array, threshold_value=80)
     # res = color_thresholding(img_array)
 
-    lobules = get_lobules(img_array, 50)
+    lobules = get_lobules_method_1(img_array, 50)
     res = remove_orange_brown(img_array)
     res = make_white_background(res)
     pink_color_RGB_structures = (138, 97, 136)
