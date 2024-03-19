@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import numpy as np
 from skimage.filters import threshold_otsu
-from skimage.morphology import dilation, binary_closing, skeletonize
+from skimage.morphology import dilation, binary_closing, skeletonize, binary_opening, erosion
 from skimage.io import imread
 
 def load_image(img_path: Path) -> np.array:
@@ -48,9 +48,9 @@ def get_lobules_method_1(img_array: np.array, threshold_value):
 
 def get_lobules_method_2(img_array: np.array):
     # Convert image to BGR
-    img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+    # img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    # Convert to from BGR to HSV
+    # Convert to from RGB to HSV
     hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
 
     # Define lower and upper bounds
@@ -61,9 +61,10 @@ def get_lobules_method_2(img_array: np.array):
     lobules_structure_mask = cv2.inRange(hsv, lower_bound, upper_bound)
     mask_dilated = dilation(lobules_structure_mask)
     mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
-    mask_dilated = dilation(mask_dilated)
+    # mask_dilated = dilation(mask_dilated)
+    # mask_dilated = dilation(mask_dilated)
+    # mask_dilated = dilation(mask_dilated)
+
 
     lobules_structure_mask = mask_dilated ^ lobules_structure_mask
     # plt.imshow(lobules_structure_mask, cmap='gray')
@@ -236,7 +237,7 @@ def get_skeleton(image: np.array):
 
 
 if __name__ == '__main__':
-    image_name = 'extracelluar_matrix_5.png'
+    image_name = 'extracelluar_matrix_2.png'
 
     # Define the path to the  image
     path_to_image = Path(os.path.join(Path(__file__).parent.parent), 'data', image_name)
@@ -247,11 +248,11 @@ if __name__ == '__main__':
     # basic_thresholding(img_array, threshold_value=80)
     # res = color_thresholding(img_array)
 
-    lobules = get_lobules_method_1(img_array, 50)
+    lobules = get_lobules_method_2(img_array)
     res = remove_orange_brown(img_array)
     res = make_white_background(res)
-    pink_color_RGB_structures = (138, 97, 136)
-    grey_color_RGB_inside_lobules = (154, 146, 156)  # RGB
+    pink_color_RGB_structures = (145, 92, 146)
+    grey_color_RGB_inside_lobules = (240, 231, 239)  # RGB
 
     pink_color_BGR = (pink_color_RGB_structures[2], pink_color_RGB_structures[1], pink_color_RGB_structures[0])
     grey_color_BGR = (grey_color_RGB_inside_lobules[2], grey_color_RGB_inside_lobules[1], grey_color_RGB_inside_lobules[0])
