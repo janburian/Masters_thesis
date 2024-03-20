@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import numpy as np
 from skimage.filters import threshold_otsu
-from skimage.morphology import dilation, binary_closing, skeletonize, binary_opening, erosion
+from skimage.morphology import dilation, closing, skeletonize, opening, binary_opening, erosion
 from skimage.io import imread
 
 def load_image(img_path: Path) -> np.array:
@@ -61,9 +61,12 @@ def get_lobules_method_2(img_array: np.array):
     lobules_structure_mask = cv2.inRange(hsv, lower_bound, upper_bound)
     mask_dilated = dilation(lobules_structure_mask)
     mask_dilated = dilation(mask_dilated)
-    # mask_dilated = dilation(mask_dilated)
-    # mask_dilated = dilation(mask_dilated)
-    # mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    mask_dilated = dilation(mask_dilated)
+    # mask_dilated = closing(mask_dilated)
+
 
 
     lobules_structure_mask = mask_dilated ^ lobules_structure_mask
@@ -135,7 +138,7 @@ def remove_orange_brown(image):
   dilated_mask = dilation(dilated_mask)
 
   contours = dilated_mask ^ mask
-  contours = binary_closing(contours).astype("uint8")
+  # contours = binary_closing(contours).astype("uint8")
 
   # plt.imshow(contours, cmap='gray')
   # plt.show()
