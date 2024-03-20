@@ -25,11 +25,12 @@ def remove_extracellular_matrix(tile: np.array):
     res = remove_orange_brown(tile)
     res = make_white_background(res)
 
-    pink_color_RGB_structures = (145, 92, 146)
-    grey_color_RGB_inside_lobules = (240, 231, 239)  # RGB
+    # pink_color_RGB_structures = (145, 92, 146)
+    pink_color_RGB_structures = (195, 75, 182)
+    pink_color_RGB_inside_lobules = (240, 231, 239)  # RGB
 
     pink_color_BGR = (pink_color_RGB_structures[2], pink_color_RGB_structures[1], pink_color_RGB_structures[0])
-    grey_color_BGR = (grey_color_RGB_inside_lobules[2], grey_color_RGB_inside_lobules[1], grey_color_RGB_inside_lobules[0])
+    grey_color_BGR = (pink_color_RGB_inside_lobules[2], pink_color_RGB_inside_lobules[1], pink_color_RGB_inside_lobules[0])
 
     res = create_pink_contours(res, lobules, pink_color_BGR, grey_color_BGR)
 
@@ -91,4 +92,4 @@ if __name__ == '__main__':
     plt.show()
 
     # Save the merged image as a PNG file
-    plt.imsave("output_1.png", merged_image[:,:,::-1])
+    plt.imsave("output.png", merged_image[:,:,::-1])

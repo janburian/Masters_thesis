@@ -65,7 +65,7 @@ def get_lobules_method_2(img_array: np.array):
     mask_dilated = dilation(mask_dilated)
     mask_dilated = dilation(mask_dilated)
     mask_dilated = dilation(mask_dilated)
-    # mask_dilated = closing(mask_dilated)
+    mask_dilated = closing(mask_dilated)
 
 
 
