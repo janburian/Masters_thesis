@@ -5,8 +5,8 @@ from extract_extracellular_matrix import color_thresholding, remove_orange_brown
     create_pink_contours, get_lobules_method_1, get_lobules_method_2
 from pathlib import Path
 import numpy as np
-import torch
-import torchvision.transforms as transforms
+# import torch
+# import torchvision.transforms as transforms
 
 
 def process_tile(tile: np.array) -> np.array:
@@ -40,24 +40,24 @@ def remove_extracellular_matrix(tile: np.array):
     return res
 
 
-def process_tile_test(tile: np.array) -> np.array:
-    # Create a copy of the image to avoid modifying the original array
-    result_tile = np.copy(tile)
-
-    with torch.no_grad():
-        to_tensor = transforms.ToTensor()
-        result_tile = to_tensor(result_tile)
-
-    result_tile = result_tile.cpu().permute(1, 2, 0).numpy()
-    result_tile = (result_tile - result_tile.min()) / (result_tile.max() - result_tile.min())  # normalize
-
-    plt.imshow(result_tile)
-    plt.show()
-
-    # Draw the red square
-    # red_color = [255, 0, 0]
-    # result_tile[5:5 + 50, 5:5 + 50, :] = red_color
-    return result_tile
+# def process_tile_test(tile: np.array) -> np.array:
+#     # Create a copy of the image to avoid modifying the original array
+#     result_tile = np.copy(tile)
+#
+#     with torch.no_grad():
+#         to_tensor = transforms.ToTensor()
+#         result_tile = to_tensor(result_tile)
+#
+#     result_tile = result_tile.cpu().permute(1, 2, 0).numpy()
+#     result_tile = (result_tile - result_tile.min()) / (result_tile.max() - result_tile.min())  # normalize
+#
+#     plt.imshow(result_tile)
+#     plt.show()
+#
+#     # Draw the red square
+#     # red_color = [255, 0, 0]
+#     # result_tile[5:5 + 50, 5:5 + 50, :] = red_color
+#     return result_tile
 
 
 def process_tile_test_2(tile):
