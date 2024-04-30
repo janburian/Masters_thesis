@@ -35,7 +35,7 @@ if __name__ == '__main__':
     path_to_czi = Path(os.path.join(Path(__file__).parent.parent), 'data_czi', 'J7_5_a.czi')
 
     # Create an ImageSplitterMerger instance with the specified parameters
-    image = ImageSplitterMerger(path_to_czi, tilesize_px=200, overlap_px=0, pixelsize_mm=[0.01, 0.01],
+    image = ImageSplitterMerger(path_to_czi, tilesize_px=500, overlap_px=0, pixelsize_mm=[0.01, 0.01],
                                 fcn=process_tile_test)
 
     # Split and merge the image, applying the specified tile processing function

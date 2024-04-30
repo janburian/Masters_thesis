@@ -8,9 +8,6 @@ import sys
 import scaffan
 import scaffan.image
 
-# Specify the path to the scaffan module
-path_to_script = Path("~/GitHub/scaffan/").expanduser()
-sys.path.insert(0, str(path_to_script))
 
 class ImageSplitterMerger(object):
     """Class which represents splitter and merger of the image"""
@@ -78,6 +75,9 @@ class ImageSplitterMerger(object):
                 overlapped_tile = self.get_tile_overlap(col_end, col_start, overlap_px, row_end,
                                                         row_start, img_shape)
 
+                # plt.imshow(overlapped_tile)
+                # plt.show()
+
                 yield overlapped_tile
 
     def get_tile_overlap(self, col_end: int, col_start: int, overlap_px: int, row_end: int, row_start: int,
@@ -127,6 +127,9 @@ class ImageSplitterMerger(object):
                     # Remove overlap from all sides of the tile
                     tile_no_overlap = tiles[idx][overlap_px:(overlap_px + row_end - row_start),
                                       overlap_px:(overlap_px + col_end - col_start)]
+
+                    plt.imshow(tile_no_overlap)
+                    plt.show()
 
                     # Calculate the corresponding region in the merged image
                     merged_row_start = i * (tilesize_px - overlap_px)
