@@ -16,5 +16,5 @@ Due to the memory requirement of the input .czi file, this file was processed by
 You can try the ECM removal tool via Google Colaboratory (https://colab.research.google.com/drive/1Ss9Z2qciXUauu5FqmUMaaBH8MZtGplRT?usp=sharing)
 
 ## Sofware for creating annotations
-Zeiss ZEN (https://www.zeiss.com/microscopy/int/products/microscope-software/zen-lite.html)
-Make Sense (https://www.makesense.ai/)
+* Zeiss ZEN (https://www.zeiss.com/microscopy/int/products/microscope-software/zen-lite.html)
+* Make Sense (https://www.makesense.ai/)
