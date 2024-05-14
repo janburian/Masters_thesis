@@ -4,6 +4,9 @@ The main goal of the proposed method was to create an approach for filtering the
 
 Due to the memory requirement of the input .czi file, this file was processed by individual square. In this tile, cell nuclei were first segmented using either Mask R-CNN (instance Segmentation) or U-Net (semantic segmentation). The segmentation output is a binary mask that contains the segmented cell nuclei (if the tile contained them). We used this mask together with the tile to filter/inpaint the cell nuclei using the biharmonic function. Finally, we performed extracellular matrix segmentation using U-Net. We saved the processed tile to the list and continued processing other tiles. After processing all the tiles, we assembled the final image from the individual tiles included in the list.
 
+## TileSplitterMerger
+Module TileSplitterMerger with the demos, which we implemented and then used to process WSI image is available in this repository here: https://github.com/mjirik/wsitools. 
+
 ## Proposed method scheme
 ![alt text](https://github.com/janburian/Masters_thesis/blob/main/graphics/schema_ECM_remove_2.png)
 
