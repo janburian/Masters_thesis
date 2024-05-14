@@ -15,7 +15,7 @@ from skimage.restoration import inpaint
 from skimage.morphology import dilation
 
 
-def get_czi_file(url_path: str, filename: str):
+def download_czi_file(url_path: str, filename: str):
     # Possible filenames: J7_5_a.czi, J7_25_a_ann0004.czi, J8_8_a.czi
     # URL of the file on GitHub
     url_path = "https://github.com/janburian/Masters_thesis/raw/main/data_czi/" + filename
