@@ -1,4 +1,4 @@
-# Python module with the auxillary methods for main method which target is to remove ECM
+# Python module with the auxiliary methods for main method which target is to remove ECM
 
 # Modules import
 import requests
@@ -13,6 +13,7 @@ from PIL import Image
 from skimage.transform import resize
 from skimage.restoration import inpaint
 from skimage.morphology import dilation
+import os
 
 
 def download_czi_file(url_path: str, filename: str):
