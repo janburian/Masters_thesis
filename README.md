@@ -18,6 +18,9 @@ You can try the ECM removal tool via Google Colaboratory (https://colab.research
 ## TileSplitterMerger
 Module TileSplitterMerger with the demos, which we implemented and then used to process WSI image is available in this repository here: https://github.com/mjirik/wsitools. 
 
+## ECM models
+ECM models are available via https://drive.google.com/drive/folders/1j7Mn7EREHOGCKJDk77NRjeRxboUHrEti?usp=sharing
+
 ## Sofware for creating annotations
 * Zeiss ZEN (https://www.zeiss.com/microscopy/int/products/microscope-software/zen-lite.html)
 * Make Sense (https://www.makesense.ai/)
